@@ -1,0 +1,47 @@
+node_modules/
+.next/
+out/
+build/
+dist/
+.env*.local
+.DS_Store
+*.log
+.vscode/
+.idea/
+next-env.d.ts
+
+# Dane użytkowników (loginy, hasła, sesje, aktywność)
+data/userdata/
+
+# Cache i tymczasowe pliki
+*.tmp
+*.tsbuildinfo
+.turbo/
+
+# Pliki środowiskowe
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Dev serwer logi
+dev.log
+dev2.log
+dev3.log
+build.log
+build2.log
+*.pid
+*.seed
+*.pid.lock
+
+# Narzędzia developerskie
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Cache
+.eslintcache
+.parcel-cache
+.next/cache
