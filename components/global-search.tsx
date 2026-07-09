@@ -130,7 +130,7 @@ export function GlobalSearch() {
                 {results.length === 0 ? (
                   <div className="flex h-32 flex-col items-center justify-center text-sm text-muted-foreground">
                     <Search className="mb-2 h-6 w-6 opacity-50" />
-                    Brak wyników dla „{query}"
+                    Brak wyników dla &bdquo;{query}&ldquo;
                   </div>
                 ) : (
                   <>
