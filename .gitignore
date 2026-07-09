@@ -45,3 +45,6 @@ build2.log
 .eslintcache
 .parcel-cache
 .next/cache
+
+# Jednorazowe skrypty pomocnicze
+scripts/
