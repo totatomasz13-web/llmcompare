@@ -13,6 +13,12 @@ next-env.d.ts
 # Dane użytkowników (loginy, hasła, sesje, aktywność)
 data/userdata/
 
+# OpenNext Cloudflare build output
+.open-next/
+
+# Wrangler state
+.wrangler/
+
 # Cache i tymczasowe pliki
 *.tmp
 *.tsbuildinfo
