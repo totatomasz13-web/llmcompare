@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getCurrentUser, hashPassword, verifyPassword } from '@/lib/auth';
-import { mutate } from '@/lib/db';
+import { dbUpdateUser } from '@/lib/db';
 
 const schema = z.object({
   currentPassword: z.string().min(1),
@@ -32,20 +32,11 @@ export async function POST(req: NextRequest) {
 
   const ok = await verifyPassword(parsed.data.currentPassword, user.passwordHash);
   if (!ok) {
-    return NextResponse.json(
-      { error: 'Nieprawidłowe obecne hasło' },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: 'Nieprawidłowe obecne hasło' }, { status: 401 });
   }
 
   const newHash = await hashPassword(parsed.data.newPassword);
-  await mutate((db) => {
-    const u = db.users.find((u) => u.id === user.id);
-    if (u) {
-      u.passwordHash = newHash;
-      u.updatedAt = new Date().toISOString();
-    }
-  });
+  await dbUpdateUser(user.id, { passwordHash: newHash } as any);
 
   return NextResponse.json({ ok: true });
 }

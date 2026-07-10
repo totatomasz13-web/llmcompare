@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { verifyPassword, createSession, setCookieOnResponse } from '@/lib/auth';
-import { mutate, generateId, getDB } from '@/lib/db';
+import { dbGetUserByEmail, dbUpdateUser, dbCreateActivity, generateId } from '@/lib/db';
 
 const schema = z.object({
   email: z.string().email('Nieprawidłowy email'),
@@ -23,25 +23,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Błędne dane' }, { status: 400 });
     }
 
-    const { email, password } = parsed.data;
-    const db = await getDB();
-    const user = db.users.find(
-      (u) => u.email.toLowerCase() === email.toLowerCase()
-    );
+    const { email } = parsed.data;
+    const user = await dbGetUserByEmail(email.toLowerCase());
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'Nieprawidłowy email lub hasło' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Nieprawidłowy email lub hasło' }, { status: 401 });
     }
 
-    const ok = await verifyPassword(password, user.passwordHash);
+    const ok = await verifyPassword(parsed.data.password, user.passwordHash);
     if (!ok) {
-      return NextResponse.json(
-        { error: 'Nieprawidłowy email lub hasło' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Nieprawidłowy email lub hasło' }, { status: 401 });
     }
 
     const session = await createSession(user.id, {
@@ -60,15 +51,13 @@ export async function POST(req: NextRequest) {
     });
     setCookieOnResponse(res, session.token);
 
-    await mutate((db) => {
-      const u = db.users.find((u) => u.id === user.id);
-      if (u) u.lastLoginAt = new Date().toISOString();
-      db.activity.push({
-        id: generateId('act'),
-        userId: user.id,
-        type: 'login',
-        createdAt: new Date().toISOString(),
-      });
+    await dbUpdateUser(user.id, { lastLoginAt: new Date().toISOString() } as any);
+
+    await dbCreateActivity({
+      id: generateId('act'),
+      userId: user.id,
+      type: 'login',
+      createdAt: new Date().toISOString(),
     });
 
     return res;

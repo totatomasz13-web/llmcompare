@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { hashPassword, createSession, setCookieOnResponse } from '@/lib/auth';
-import { mutate, generateId, getDB } from '@/lib/db';
+import { dbGetUserByEmail, dbGetUserByUsername, dbCreateUser, dbCreateActivity, generateId } from '@/lib/db';
 
 const schema = z.object({
   email: z.string().email('Nieprawidłowy email'),
@@ -38,44 +38,39 @@ export async function POST(req: NextRequest) {
     }
 
     const { email, username, password, displayName } = parsed.data;
-    const db = await getDB();
 
-    if (db.users.find((u) => u.email.toLowerCase() === email.toLowerCase())) {
-      return NextResponse.json(
-        { error: 'Email jest już zajęty' },
-        { status: 409 }
-      );
+    const existingEmail = await dbGetUserByEmail(email.toLowerCase());
+    if (existingEmail) {
+      return NextResponse.json({ error: 'Email jest już zajęty' }, { status: 409 });
     }
-    if (db.users.find((u) => u.username.toLowerCase() === username.toLowerCase())) {
-      return NextResponse.json(
-        { error: 'Nazwa użytkownika jest zajęta' },
-        { status: 409 }
-      );
+
+    const existingUser = await dbGetUserByUsername(username.toLowerCase());
+    if (existingUser) {
+      return NextResponse.json({ error: 'Nazwa użytkownika jest zajęta' }, { status: 409 });
     }
 
     const passwordHash = await hashPassword(password);
     const now = new Date().toISOString();
     const userId = generateId('usr');
 
-    await mutate((db) => {
-      db.users.push({
-        id: userId,
-        email: email.toLowerCase(),
-        username: username.toLowerCase(),
-        passwordHash,
-        displayName: displayName || username,
-        role: db.users.length === 0 ? 'admin' : 'user',
-        createdAt: now,
-        updatedAt: now,
-        emailVerified: false,
-        preferences: { defaultView: 'grid', emailNotifications: false },
-      });
-      db.activity.push({
-        id: generateId('act'),
-        userId,
-        type: 'register',
-        createdAt: now,
-      });
+    await dbCreateUser({
+      id: userId,
+      email: email.toLowerCase(),
+      username: username.toLowerCase(),
+      passwordHash,
+      displayName: displayName || username,
+      role: 'user',
+      createdAt: now,
+      updatedAt: now,
+      emailVerified: false,
+      preferences: JSON.stringify({ defaultView: 'grid', emailNotifications: false }),
+    });
+
+    await dbCreateActivity({
+      id: generateId('act'),
+      userId,
+      type: 'register',
+      createdAt: now,
     });
 
     const session = await createSession(userId, {
@@ -83,14 +78,14 @@ export async function POST(req: NextRequest) {
       ipAddress: req.headers.get('x-forwarded-for') ?? undefined,
     });
 
-    const db2 = await getDB();
+    const user = await dbGetUserByEmail(email.toLowerCase());
     const res = NextResponse.json({
       user: {
         id: userId,
         email: email.toLowerCase(),
         username: username.toLowerCase(),
         displayName: displayName || username,
-        role: db2.users.length === 1 ? 'admin' : 'user',
+        role: user?.role || 'user',
       },
     });
     setCookieOnResponse(res, session.token);

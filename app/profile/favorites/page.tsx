@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth';
-import { getDB } from '@/lib/db';
+import { dbGetUserFavorites } from '@/lib/db';
 import { FavoritesClient } from './favorites-client';
 import { MODELS } from '@/data/models';
 
@@ -10,10 +10,7 @@ export default async function FavoritesPage() {
   const user = await getCurrentUser();
   if (!user) redirect('/login?redirect=/profile/favorites');
 
-  const db = await getDB();
-  const favs = db.favorites
-    .filter((f) => f.userId === user.id)
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const favs = await dbGetUserFavorites(user.id);
 
   const models = favs
     .map((f) => {

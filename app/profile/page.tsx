@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/auth';
-import { getDB } from '@/lib/db';
+import { dbGetUserFavorites, dbGetUserComparisons, dbGetUserActivity } from '@/lib/db';
 import { ProfileClient } from './profile-client';
 
 export const metadata = { title: 'Mój profil' };
@@ -9,11 +9,15 @@ export default async function ProfilePage() {
   const user = await getCurrentUser();
   if (!user) redirect('/login?redirect=/profile');
 
-  const db = await getDB();
-  const favCount = db.favorites.filter((f) => f.userId === user.id).length;
-  const reviewCount = db.reviews.filter((r) => r.userId === user.id).length;
-  const compCount = db.comparisons.filter((c) => c.userId === user.id).length;
-  const viewCount = db.activity.filter((a) => a.userId === user.id && a.type === 'view').length;
+  const [favs, comparisons, activity] = await Promise.all([
+    dbGetUserFavorites(user.id),
+    dbGetUserComparisons(user.id),
+    dbGetUserActivity(user.id, 10000),
+  ]);
+
+  const favCount = favs.length;
+  const compCount = comparisons.length;
+  const viewCount = activity.filter((a) => a.type === 'view').length;
 
   return (
     <ProfileClient
@@ -27,7 +31,7 @@ export default async function ProfilePage() {
         avatarUrl: user.avatarUrl,
         createdAt: user.createdAt,
       }}
-      stats={{ favorites: favCount, reviews: reviewCount, comparisons: compCount, views: viewCount }}
+      stats={{ favorites: favCount, reviews: 0, comparisons: compCount, views: viewCount }}
     />
   );
 }

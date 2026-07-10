@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth';
-import { mutate } from '@/lib/db';
+import { dbDeleteReview } from '@/lib/db';
 
 export async function DELETE(req: NextRequest) {
   const user = await getCurrentUser();
@@ -8,9 +8,7 @@ export async function DELETE(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id');
   if (id) {
-    await mutate((db) => {
-      db.reviews = db.reviews.filter((r) => !(r.id === id && r.userId === user.id));
-    });
+    await dbDeleteReview(id);
   }
   return NextResponse.json({ ok: true });
 }

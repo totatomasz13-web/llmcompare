@@ -1,7 +1,10 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
-import { getDB, mutate, generateId, type User, type Session } from './db';
+import {
+  dbGetUserById, dbGetSessionByToken, dbCreateSession, dbDeleteSession,
+  dbCreateActivity, generateId, type User, type Session,
+} from './db';
 import { signToken, verifyToken, COOKIE_NAME } from './jwt';
 
 const SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1000;
@@ -52,31 +55,22 @@ export async function createSession(
     ipAddress: meta?.ipAddress,
     createdAt: new Date().toISOString(),
   };
-  await mutate((db) => {
-    db.sessions.push(session);
-    db.sessions = db.sessions.filter(
-      (s) => new Date(s.expiresAt).getTime() > Date.now()
-    );
-  });
+  await dbCreateSession(session);
   return session;
 }
 
 export async function destroySession(token: string) {
-  await mutate((db) => {
-    db.sessions = db.sessions.filter((s) => s.token !== token);
-  });
+  await dbDeleteSession(token);
 }
 
 export async function getUserFromToken(token: string | undefined): Promise<User | null> {
   if (!token) return null;
   const payload = await verifyToken(token);
   if (!payload) return null;
-  const db = await getDB();
-  const user = db.users.find((u) => u.id === payload.sub);
+  const user = await dbGetUserById(payload.sub);
   if (!user) return null;
-  const session = db.sessions.find((s) => s.token === token);
+  const session = await dbGetSessionByToken(token);
   if (!session) return null;
-  if (new Date(session.expiresAt).getTime() < Date.now()) return null;
   return user;
 }
 

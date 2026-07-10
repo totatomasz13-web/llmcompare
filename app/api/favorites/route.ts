@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getCurrentUser } from '@/lib/auth';
-import { getDB, mutate, generateId } from '@/lib/db';
+import { dbGetUserFavorites, dbGetFavorite, dbCreateFavorite, dbDeleteFavorite, dbCreateActivity, generateId } from '@/lib/db';
 
 const schema = z.object({
   modelId: z.string().min(1),
@@ -12,10 +12,7 @@ export async function GET() {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const db = await getDB();
-  const items = db.favorites
-    .filter((f) => f.userId === user.id)
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const items = await dbGetUserFavorites(user.id);
   return NextResponse.json({ items });
 }
 
@@ -30,34 +27,29 @@ export async function POST(req: NextRequest) {
   if (!parsed.success) return NextResponse.json({ error: 'Bad data' }, { status: 400 });
 
   const { modelId, note } = parsed.data;
-  const now = new Date().toISOString();
+  const existing = await dbGetFavorite(user.id, modelId);
+  if (existing) {
+    return NextResponse.json({ created: false, favorite: existing });
+  }
 
-  let result: { created: boolean; favorite?: any } = { created: false };
-  await mutate((db) => {
-    const existing = db.favorites.find((f) => f.userId === user.id && f.modelId === modelId);
-    if (existing) {
-      result = { created: false, favorite: existing };
-      return;
-    }
-    const fav = {
-      id: generateId('fav'),
-      userId: user.id,
-      modelId,
-      note,
-      createdAt: now,
-    };
-    db.favorites.push(fav);
-    db.activity.push({
-      id: generateId('act'),
-      userId: user.id,
-      type: 'favorite',
-      modelId,
-      createdAt: now,
-    });
-    result = { created: true, favorite: fav };
+  const now = new Date().toISOString();
+  const fav = {
+    id: generateId('fav'),
+    userId: user.id,
+    modelId,
+    note,
+    createdAt: now,
+  };
+  await dbCreateFavorite(fav);
+  await dbCreateActivity({
+    id: generateId('act'),
+    userId: user.id,
+    type: 'favorite',
+    modelId,
+    createdAt: now,
   });
 
-  return NextResponse.json(result, { status: result.created ? 201 : 200 });
+  return NextResponse.json({ created: true, favorite: fav }, { status: 201 });
 }
 
 export async function DELETE(req: NextRequest) {
@@ -68,11 +60,6 @@ export async function DELETE(req: NextRequest) {
   const modelId = searchParams.get('modelId');
   if (!modelId) return NextResponse.json({ error: 'Missing modelId' }, { status: 400 });
 
-  await mutate((db) => {
-    db.favorites = db.favorites.filter(
-      (f) => !(f.userId === user.id && f.modelId === modelId)
-    );
-  });
-
+  await dbDeleteFavorite(user.id, modelId);
   return NextResponse.json({ ok: true });
 }

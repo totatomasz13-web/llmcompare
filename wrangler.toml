@@ -1,0 +1,11 @@
+name = "llm-compare"
+pages_build_output_dir = ".vercel/output/static"
+
+compatibility_date = "2025-06-01"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "llm-compare-db"
+database_id = ""
+migrations_dir = "lib"

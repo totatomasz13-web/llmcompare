@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { destroySession, clearCookieOnResponse, COOKIE_NAME } from '@/lib/auth';
+import { destroySession, clearCookieOnResponse } from '@/lib/auth';
 
 export async function POST(_req: NextRequest) {
   try {

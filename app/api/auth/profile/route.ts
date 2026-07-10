@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getCurrentUser } from '@/lib/auth';
-import { mutate } from '@/lib/db';
+import { dbGetUserById, dbUpdateUser } from '@/lib/db';
 
 const schema = z.object({
   displayName: z.string().min(1).max(64).optional(),
@@ -32,17 +32,15 @@ export async function PUT(req: NextRequest) {
   }
 
   const data = parsed.data;
-  await mutate((db) => {
-    const u = db.users.find((u) => u.id === user.id);
-    if (!u) return;
-    if (data.displayName !== undefined) u.displayName = data.displayName;
-    if (data.bio !== undefined) u.bio = data.bio;
-    if (data.avatarUrl !== undefined) u.avatarUrl = data.avatarUrl || undefined;
-    if (data.preferences) {
-      u.preferences = { ...u.preferences, ...data.preferences };
-    }
-    u.updatedAt = new Date().toISOString();
-  });
+  const updates: any = {};
+  if (data.displayName !== undefined) updates.displayName = data.displayName;
+  if (data.bio !== undefined) updates.bio = data.bio;
+  if (data.avatarUrl !== undefined) updates.avatarUrl = data.avatarUrl || undefined;
+  if (data.preferences) {
+    const existing = await dbGetUserById(user.id);
+    updates.preferences = { ...existing?.preferences, ...data.preferences };
+  }
+  await dbUpdateUser(user.id, updates);
 
   return NextResponse.json({ ok: true });
 }
