@@ -18,6 +18,7 @@ data/userdata/
 
 # Wrangler state
 .wrangler/
+.wrangler/deploy/
 
 # Cache i tymczasowe pliki
 *.tmp
