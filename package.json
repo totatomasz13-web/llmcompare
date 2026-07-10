@@ -5,7 +5,7 @@
   "description": "Profesjonalny portal do porównywania modeli LLM - Open Source i API",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "npx opennextjs-cloudflare build",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
