@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
     ipAddress: req.headers.get('x-forwarded-for') ?? undefined,
   });
 
-  setSessionCookie(session.token);
+  await setSessionCookie(session.token);
 
   return NextResponse.json({
     user: {

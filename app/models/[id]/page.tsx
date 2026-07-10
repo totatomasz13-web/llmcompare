@@ -56,12 +56,9 @@ const USE_CASE_ICONS: Record<UseCase, React.ComponentType<{ className?: string }
   agents: Brain,
 };
 
-interface PageProps {
-  params: { id: string };
-}
-
-export default function ModelDetailPage({ params }: PageProps) {
-  const model = MODELS.find((m) => m.id === params.id);
+export default function ModelDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = React.use(params);
+  const model = MODELS.find((m) => m.id === id);
   if (!model) notFound();
 
   const isPaid = model.category === 'paid';

@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
     ipAddress: req.headers.get('x-forwarded-for') ?? undefined,
   });
 
-  setSessionCookie(session.token);
+  await setSessionCookie(session.token);
 
   await mutate((db) => {
     const u = db.users.find((u) => u.id === user.id);

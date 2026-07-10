@@ -67,7 +67,7 @@ export async function getUserFromToken(token: string | undefined): Promise<User 
 }
 
 export async function getCurrentUser(): Promise<User | null> {
-  const store = cookies();
+  const store = await cookies();
   const token = store.get(COOKIE_NAME)?.value;
   return getUserFromToken(token);
 }
@@ -77,8 +77,8 @@ export async function getCurrentUserFromRequest(req: NextRequest): Promise<User 
   return getUserFromToken(token);
 }
 
-export function setSessionCookie(token: string) {
-  cookies().set(COOKIE_NAME, token, {
+export async function setSessionCookie(token: string) {
+  (await cookies()).set(COOKIE_NAME, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
@@ -87,8 +87,8 @@ export function setSessionCookie(token: string) {
   });
 }
 
-export function clearSessionCookie() {
-  cookies().set(COOKIE_NAME, '', { path: '/', maxAge: 0 });
+export async function clearSessionCookie() {
+  (await cookies()).set(COOKIE_NAME, '', { path: '/', maxAge: 0 });
 }
 
 export const SESSION_COOKIE_NAME = COOKIE_NAME;

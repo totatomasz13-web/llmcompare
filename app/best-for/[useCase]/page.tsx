@@ -28,12 +28,8 @@ const ICON_MAP: Record<UseCase, React.ComponentType<{ className?: string }>> = {
   agents: Brain,
 };
 
-interface PageProps {
-  params: { useCase: string };
-}
-
-export default function BestForDetailPage({ params }: PageProps) {
-  const useCase = params.useCase as UseCase;
+export default function BestForDetailPage({ params }: { params: Promise<{ useCase: string }> }) {
+  const { useCase } = React.use(params) as { useCase: UseCase };
   if (!(useCase in USE_CASES_INFO)) {
     notFound();
   }
