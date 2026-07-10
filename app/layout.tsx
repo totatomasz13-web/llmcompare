@@ -104,11 +104,12 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
+        <script dangerouslySetInnerHTML={{ __html: `window.__suppressResizeObserverError=true;` }} />
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
           enableSystem
-          disableTransitionOnChange={false}
+          disableTransitionOnChange={true}
         >
           <AuthProvider>
             <a
