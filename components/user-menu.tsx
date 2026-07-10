@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User as UserIcon, LogOut, Settings, Heart, MessageSquare, History, LayoutDashboard, ChevronDown } from 'lucide-react';
 import { useAuth } from '@/components/auth-provider';
@@ -56,7 +57,7 @@ export function UserMenu() {
         className="flex items-center gap-2 rounded-xl border border-border bg-card/50 px-2 py-1.5 backdrop-blur-sm transition-all hover:border-primary/50 hover:bg-card"
       >
         {user.avatarUrl ? (
-          <img src={user.avatarUrl} alt="" className="h-7 w-7 rounded-lg object-cover" />
+          <Image src={user.avatarUrl} alt="" width={28} height={28} className="h-7 w-7 rounded-lg object-cover" unoptimized />
         ) : (
           <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-500 text-xs font-bold text-white">
             {initials}

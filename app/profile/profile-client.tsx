@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import {
   User as UserIcon, Heart, MessageSquare, History, LayoutDashboard,
@@ -40,7 +41,7 @@ export function ProfileClient({ user, stats }: ProfileClientProps) {
         >
           <div className="flex flex-col items-start gap-6 sm:flex-row sm:items-center">
             {user.avatarUrl ? (
-              <img src={user.avatarUrl} alt="" className="h-20 w-20 rounded-2xl object-cover" />
+              <Image src={user.avatarUrl} alt="" width={80} height={80} className="h-20 w-20 rounded-2xl object-cover" unoptimized />
             ) : (
               <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 via-fuchsia-500 to-pink-500 text-2xl font-extrabold text-white shadow-glow">
                 {initials}
