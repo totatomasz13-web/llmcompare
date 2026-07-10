@@ -9,11 +9,13 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "cf-build": "npx @cloudflare/next-on-pages",
-    "cf-preview": "npx wrangler pages dev .vercel/output/static --compatibility-flags nodejs_compat --d1 DB=llm-compare-db",
-    "cf-deploy": "npx wrangler pages deploy .vercel/output/static --d1 DB=llm-compare-db"
+    "cf-build": "npx opennextjs-cloudflare build",
+    "cf-deploy-worker": "npx wrangler deploy",
+    "cf-preview": "npx wrangler pages dev .open-next --compatibility-flags nodejs_compat",
+    "cf-deploy": "npx wrangler pages deploy .open-next"
   },
   "dependencies": {
+    "@opennextjs/cloudflare": "^1.20.1",
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
     "framer-motion": "^11.15.0",
@@ -28,7 +30,6 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@cloudflare/next-on-pages": "^1",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20.16.5",
     "@types/react": "^19.0.0",

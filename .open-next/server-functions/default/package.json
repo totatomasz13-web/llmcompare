@@ -1,0 +1,44 @@
+{
+  "name": "llm-compare",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Profesjonalny portal do porównywania modeli LLM - Open Source i API",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "cf-build": "node node_modules/@opennextjs/cloudflare/dist/cli/index.js build",
+    "cf-preview": "npx wrangler pages dev .vercel/output/static --compatibility-flags nodejs_compat",
+    "cf-deploy": "npx wrangler pages deploy .vercel/output/static"
+  },
+  "dependencies": {
+    "@opennextjs/cloudflare": "^1.20.1",
+    "bcryptjs": "^3.0.3",
+    "clsx": "^2.1.1",
+    "framer-motion": "^11.15.0",
+    "jose": "^6.2.3",
+    "lucide-react": "^0.441.0",
+    "next": "^15.2.4",
+    "next-themes": "^0.4.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "recharts": "^2.12.7",
+    "tailwind-merge": "^2.5.2",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^20.16.5",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "autoprefixer": "^10.4.20",
+    "eslint": "^8.57.0",
+    "eslint-config-next": "^15.2.4",
+    "postcss": "^8.4.45",
+    "tailwindcss": "^3.4.10",
+    "typescript": "^5.5.4",
+    "wrangler": "^4"
+  }
+}

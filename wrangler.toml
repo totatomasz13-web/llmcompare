@@ -1,11 +1,9 @@
 name = "llm-compare"
-pages_build_output_dir = ".vercel/output/static"
-
+main = ".open-next/worker.js"
 compatibility_date = "2025-06-01"
 compatibility_flags = ["nodejs_compat"]
 
 [[d1_databases]]
 binding = "DB"
 database_name = "llm-compare-db"
-database_id = ""
-migrations_dir = "lib"
+database_id = "33345f08-ec70-40e2-a592-adb6a9c33a92"

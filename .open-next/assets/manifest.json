@@ -1,0 +1,17 @@
+{
+  "name": "LLM Compare",
+  "short_name": "LLM Compare",
+  "description": "Profesjonalny portal do porównywania modeli LLM",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0f",
+  "theme_color": "#a855f7",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
