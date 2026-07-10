@@ -1,7 +1,9 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 
-const DATA_DIR = path.join(process.cwd(), 'data', 'userdata');
+const DATA_DIR = process.env.VERCEL
+  ? path.join('/tmp', 'llmcompare-data')
+  : path.join(process.cwd(), 'data', 'userdata');
 
 export interface User {
   id: string;
