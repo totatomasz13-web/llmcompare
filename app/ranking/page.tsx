@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -15,7 +16,7 @@ type ViewMode = 'grid' | 'table';
 type CategoryFilter = 'all' | 'open-source' | 'paid';
 type SortMode = 'rating' | 'quality' | 'speed' | 'popularity' | 'recent';
 
-export default function RankingPage() {
+function RankingContent() {
   const [view, setView] = React.useState<ViewMode>('grid');
   const [category, setCategory] = React.useState<CategoryFilter>('all');
   const [sort, setSort] = React.useState<SortMode>('rating');
@@ -291,6 +292,14 @@ function PodiumSection({
         ))}
       </div>
     </motion.section>
+  );
+}
+
+export default function RankingPage() {
+  return (
+    <Suspense>
+      <RankingContent />
+    </Suspense>
   );
 }
 
