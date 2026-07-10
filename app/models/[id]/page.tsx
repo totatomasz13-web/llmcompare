@@ -29,15 +29,48 @@ import {
   MessageSquare,
   BookOpen,
   Gauge,
+  AlertTriangle,
 } from 'lucide-react';
 import { MODELS, formatContext, formatPrice, USE_CASES_INFO } from '@/data/models';
 import type { UseCase } from '@/data/models';
-import { BarCompare, RadarCompare } from '@/components/charts';
+import { RadarCompare } from '@/components/charts';
 import { ModelCard } from '@/components/model-card';
 import { FavoriteButton } from '@/components/favorite-button';
 import { ReviewForm } from '@/components/review-form';
 import { ViewTracker } from '@/components/view-tracker';
 import { cn, formatRating } from '@/lib/utils';
+
+class ModelErrorBoundary extends React.Component<{ children: React.ReactNode; modelId: string }, { error: Error | null }> {
+  constructor(props: { children: React.ReactNode; modelId: string }) {
+    super(props);
+    this.state = { error: null };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 p-8 text-center">
+          <div className="rounded-2xl bg-rose-500/10 p-4">
+            <AlertTriangle className="h-10 w-10 text-rose-500" />
+          </div>
+          <h2 className="text-xl font-bold">Coś poszło nie tak</h2>
+          <p className="max-w-md text-sm text-muted-foreground">
+            Nie udało się załadować strony modelu. Odśwież stronę lub spróbuj ponownie później.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="rounded-lg bg-gradient-to-r from-violet-500 to-fuchsia-500 px-4 py-2 text-sm font-semibold text-white"
+          >
+            Odśwież
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 const USE_CASE_ICONS: Record<UseCase, React.ComponentType<{ className?: string }>> = {
   coding: Code2,
@@ -71,6 +104,7 @@ export default function ModelDetailPage({ params }: { params: Promise<{ id: stri
       <ViewTracker modelId={model.id} />
       <div className="pointer-events-none absolute inset-0 -z-10 bg-mesh-1 opacity-30" />
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
+        <ModelErrorBoundary modelId={model.id}>
         <Link
           href="/ranking"
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -314,7 +348,8 @@ export default function ModelDetailPage({ params }: { params: Promise<{ id: stri
               ))}
             </div>
           </section>
-        )}
+          )}
+        </ModelErrorBoundary>
       </div>
     </div>
   );
