@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers';
-import { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { getDB, mutate, generateId, type User, type Session } from './db';
 import { signToken, verifyToken, COOKIE_NAME } from './jwt';
@@ -23,6 +23,20 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 }
 
 export { signToken, verifyToken, COOKIE_NAME };
+
+export function setCookieOnResponse(response: NextResponse, token: string) {
+  response.cookies.set(COOKIE_NAME, token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 30 * 24 * 60 * 60,
+  });
+}
+
+export function clearCookieOnResponse(response: NextResponse) {
+  response.cookies.set(COOKIE_NAME, '', { path: '/', maxAge: 0 });
+}
 
 export async function createSession(
   userId: string,
@@ -76,19 +90,3 @@ export async function getCurrentUserFromRequest(req: NextRequest): Promise<User 
   const token = req.cookies.get(COOKIE_NAME)?.value;
   return getUserFromToken(token);
 }
-
-export async function setSessionCookie(token: string) {
-  (await cookies()).set(COOKIE_NAME, token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path: '/',
-    maxAge: SESSION_DURATION_MS / 1000,
-  });
-}
-
-export async function clearSessionCookie() {
-  (await cookies()).set(COOKIE_NAME, '', { path: '/', maxAge: 0 });
-}
-
-export const SESSION_COOKIE_NAME = COOKIE_NAME;

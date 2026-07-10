@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
-import { verifyPassword, createSession, setSessionCookie } from '@/lib/auth';
+import { verifyPassword, createSession, setCookieOnResponse } from '@/lib/auth';
 import { mutate, generateId, getDB } from '@/lib/db';
 
 const schema = z.object({
@@ -48,7 +48,16 @@ export async function POST(req: NextRequest) {
     ipAddress: req.headers.get('x-forwarded-for') ?? undefined,
   });
 
-  await setSessionCookie(session.token);
+  const res = NextResponse.json({
+    user: {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+      displayName: user.displayName || user.username,
+      role: user.role,
+    },
+  });
+  setCookieOnResponse(res, session.token);
 
   await mutate((db) => {
     const u = db.users.find((u) => u.id === user.id);
@@ -61,13 +70,5 @@ export async function POST(req: NextRequest) {
     });
   });
 
-  return NextResponse.json({
-    user: {
-      id: user.id,
-      email: user.email,
-      username: user.username,
-      displayName: user.displayName || user.username,
-      role: user.role,
-    },
-  });
+  return res;
 }
