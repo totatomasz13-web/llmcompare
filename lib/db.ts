@@ -10,7 +10,7 @@ interface D1Database {
 }
 
 function getD1(): D1Database {
-  const ctx = (globalThis as any).getRequestContext?.();
+  const ctx = (globalThis as any)[Symbol.for("__cloudflare-context__")];
   if (ctx?.env?.DB) return ctx.env.DB as D1Database;
   throw new Error('D1 database binding not found - ensure you are running on Cloudflare Workers with a D1 binding named "DB"');
 }

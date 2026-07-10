@@ -1,7 +1,10 @@
 name = "llm-compare"
 main = ".open-next/worker.js"
-compatibility_date = "2025-06-01"
+compatibility_date = "2025-11-01"
 compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = "./.open-next/assets"
 
 [[d1_databases]]
 binding = "DB"
