@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { UserMenu } from '@/components/user-menu';
+import { useAuth } from '@/components/auth-provider';
 import { GlobalSearch } from '@/components/global-search';
 import { cn } from '@/lib/utils';
 
@@ -32,6 +33,7 @@ export function Navbar() {
   const [open, setOpen] = React.useState(false);
   const [scrolled, setScrolled] = React.useState(false);
   const pathname = usePathname();
+  const { user, loading } = useAuth();
 
   React.useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -167,6 +169,16 @@ export function Navbar() {
                     </motion.li>
                   );
                 })}
+                {!loading && !user && (
+                  <li className="pt-2">
+                    <Link
+                      href="/login"
+                      className="flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-violet-500 to-fuchsia-500 px-3 py-3 text-sm font-semibold text-white shadow-soft"
+                    >
+                      Zaloguj się
+                    </Link>
+                  </li>
+                )}
               </ul>
             </nav>
           </motion.div>
