@@ -201,7 +201,7 @@ export function ModelTable({ models, initialSort = { field: 'rating', direction:
                     <td className="hidden px-4 py-3 text-right lg:table-cell">
                       <div className="inline-flex items-center gap-1 text-sm tabular-nums">
                         <Zap className="h-3 w-3 text-amber-500" />
-                        {m.speed}/10
+                        {m.speed}/100
                       </div>
                     </td>
                     <td className="hidden px-4 py-3 text-right text-sm tabular-nums sm:table-cell">

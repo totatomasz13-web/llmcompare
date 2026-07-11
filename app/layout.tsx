@@ -105,6 +105,8 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
         <script dangerouslySetInnerHTML={{ __html: `window.__suppressResizeObserverError=true;` }} />
+        {/* Workaround for next-themes injected script referencing __name helper when minified */}
+        <script dangerouslySetInnerHTML={{ __html: `var __name=function(f){return f;};` }} />
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

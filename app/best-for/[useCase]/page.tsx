@@ -55,7 +55,10 @@ export default function BestForDetailPage({ params }: { params: Promise<{ useCas
   const field = fieldMap[useCase];
 
   const top = [...MODELS]
-    .filter((m) => m.useCases.includes(useCase))
+    .filter((m) => {
+      if (useCase === 'local') return m.category === 'open-source';
+      return m.useCases.includes(useCase);
+    })
     .sort((a, b) => (b[field] as number) - (a[field] as number))
     .slice(0, 6);
 

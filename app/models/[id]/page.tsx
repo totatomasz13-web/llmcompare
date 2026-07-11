@@ -250,7 +250,7 @@ export default function ModelDetailPage({ params }: { params: Promise<{ id: stri
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <MetricCard icon={Hash} label="Parametry" value={model.parameters ?? 'Brak danych'} />
             <MetricCard icon={Zap} label="Kontekst" value={formatContext(model.contextWindow)} highlight />
-            <MetricCard icon={Gauge} label="Szybkość" value={`${model.speed}/10`} />
+            <MetricCard icon={Gauge} label="Szybkość" value={`${model.speed}/100`} />
             <MetricCard icon={Cpu} label="Jakość" value={`${model.quality}/100`} />
           </div>
         </motion.section>
@@ -298,7 +298,7 @@ export default function ModelDetailPage({ params }: { params: Promise<{ id: stri
             <ScoreRow label="Matematyka" value={model.math} color={model.color} />
             <ScoreRow label="Pisanie" value={model.writing} color={model.color} />
             <ScoreRow label="Rozumowanie" value={model.reasoning} color={model.color} />
-            <ScoreRow label="Szybkość" value={model.speed * 10} color={model.color} suffix="/100" />
+            <ScoreRow label="Szybkość" value={model.speed} color={model.color} suffix="/100" />
           </div>
         </section>
 
