@@ -12,21 +12,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${SITE_URL}/paid`, lastModified: now, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${SITE_URL}/best-for`, lastModified: now, changeFrequency: 'weekly', priority: 0.8 },
     { url: `${SITE_URL}/compare`, lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
+    { url: `${SITE_URL}/login`, lastModified: now, changeFrequency: 'monthly', priority: 0.3 },
+    { url: `${SITE_URL}/register`, lastModified: now, changeFrequency: 'monthly', priority: 0.3 },
   ];
 
-  const modelPages: MetadataRoute.Sitemap = MODELS.map((m) => ({
-    url: `${SITE_URL}/models/${m.id}`,
-    lastModified: now,
-    changeFrequency: 'weekly' as const,
-    priority: 0.6,
-  }));
-
-  const useCasePages: MetadataRoute.Sitemap = Object.keys(USE_CASES_INFO).map((uc) => ({
-    url: `${SITE_URL}/best-for/${uc}`,
-    lastModified: now,
-    changeFrequency: 'weekly' as const,
-    priority: 0.7,
-  }));
-
-  return [...staticPages, ...modelPages, ...useCasePages];
+  return staticPages;
 }
