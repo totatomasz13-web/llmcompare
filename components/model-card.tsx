@@ -111,7 +111,7 @@ export function ModelCard({ model, index = 0, compact = false }: ModelCardProps)
         <Stat icon={Hash} label="Parametry" value={model.parameters ?? '—'} />
         <Stat icon={Zap} label="Kontekst" value={formatContext(model.contextWindow)} highlight />
         <Stat icon={Calendar} label="Wydanie" value={new Date(model.releaseDate).getFullYear().toString()} />
-        <Stat icon={Cpu} label="Szybkość" value={`${model.speed}/10`} />
+        <Stat icon={Cpu} label="Szybkość" value={`${model.speed}/100`} />
       </dl>
 
       {!compact && (
