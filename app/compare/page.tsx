@@ -2,8 +2,8 @@
 
 import * as React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { GitCompare, Plus, X, Sparkles, CheckCircle2, Coins, FileCode } from 'lucide-react';
-import { RadarCompare, BarCompare, PriceVsQuality } from '@/components/charts';
+import { GitCompare, Plus, X, Sparkles, Bot, Coins, FileCode } from 'lucide-react';
+import { RadarCompare, BarCompare } from '@/components/charts';
 import { MODELS, type LLMModel, formatContext, formatPrice } from '@/data/models';
 import { cn } from '@/lib/utils';
 
@@ -13,6 +13,9 @@ export default function ComparePage() {
   const [selectedIds, setSelectedIds] = React.useState<string[]>([]);
   const [openSlot, setOpenSlot] = React.useState<number | null>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const [summary, setSummary] = React.useState<string | null>(null);
+  const [summaryLoading, setSummaryLoading] = React.useState(false);
+  const [summaryError, setSummaryError] = React.useState<string | null>(null);
 
   const selected = React.useMemo(
     () => selectedIds.map((id) => MODELS.find((m) => m.id === id)!).filter(Boolean),
@@ -32,6 +35,67 @@ export default function ComparePage() {
 
   const available = MODELS.filter((m) => !selectedIds.includes(m.id));
 
+  const fetchSummary = React.useCallback(async () => {
+    if (selected.length < 2) return;
+    setSummaryLoading(true);
+    setSummaryError(null);
+    setSummary(null);
+    try {
+      const modelsRes = await fetch('http://192.168.0.193:1234/v1/models');
+      if (!modelsRes.ok) {
+        throw new Error(`Nie udało się pobrać listy modeli z LM Studio (${modelsRes.status}).`);
+      }
+      const modelsData = await modelsRes.json();
+      // eslint-disable-next-line no-console
+      console.log('LM Studio models:', modelsData);
+      const loadedModel = modelsData.data?.[0]?.id;
+      if (!loadedModel) {
+        throw new Error('W LM Studio nie ma załadowanego żadnego modelu. Załaduj model i spróbuj ponownie.');
+      }
+
+      const modelsInfo = selected
+        .map(
+          (m) =>
+            `- ${m.name} (${m.creator}, ${m.category}): jakość=${m.quality}, szybkość=${m.speed}, programowanie=${m.coding}, matematyka=${m.math}, pisanie=${m.writing}, rozumowanie=${m.reasoning}, ocena=${m.rating}, kontekst=${m.contextWindow}, parametry=${m.parameters ?? 'brak'}, cena=${m.pricePerMillion ? `$${m.pricePerMillion.input}/$${m.pricePerMillion.output}` : 'darmowe'}, zalety=${m.strengths.join('; ')}, wady=${m.weaknesses.join('; ')}, opis=${m.description}`
+        )
+        .join('\n');
+
+      const prompt = `Jesteś ekspertem od modeli AI. Odpowiadasz po polsku, krótko i konkretnie.\n\nPorównaj następujące modele LLM i napisz krótkie podsumowanie (max 5 zdań). Wskaż który model jest najlepszy w czym i dla kogo.\n\nModele:\n${modelsInfo}`;
+
+      const res = await fetch('http://192.168.0.193:1234/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: loadedModel,
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.5,
+          max_tokens: 1024,
+          stream: false,
+        }),
+      });
+
+      if (!res.ok) {
+        const text = await res.text().catch(() => res.statusText);
+        throw new Error(`LM Studio nie odpowiada (${res.status}): ${text}`);
+      }
+
+      const data = await res.json();
+      // eslint-disable-next-line no-console
+      console.log('LM Studio response:', data);
+      const summaryText = data.choices?.[0]?.message?.content?.trim() || data.choices?.[0]?.text?.trim();
+      if (!summaryText) {
+        throw new Error('Model AI zwrócił pustą odpowiedź.');
+      }
+      setSummary(summaryText);
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error('Summary error:', err);
+      setSummaryError(err instanceof Error ? err.message : 'Nieznany błąd');
+    } finally {
+      setSummaryLoading(false);
+    }
+  }, [selected]);
+
   React.useEffect(() => {
     if (openSlot === null) return;
     const handler = (e: MouseEvent) => {
@@ -42,6 +106,11 @@ export default function ComparePage() {
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [openSlot]);
+
+  React.useEffect(() => {
+    setSummary(null);
+    setSummaryError(null);
+  }, [selectedIds]);
 
   return (
     <div className="relative">
@@ -116,25 +185,10 @@ export default function ComparePage() {
           </section>
         )}
 
-        {selected.length >= 2 && selected.some((m) => m.category === 'paid') && (
-          <motion.section
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="mt-12"
-          >
-            <h2 className="mb-4 text-xl font-bold">Cena vs Jakość</h2>
-            <div className="rounded-2xl border border-border bg-card/30 p-4 backdrop-blur-sm sm:p-6">
-              <PriceVsQuality models={selected} />
-            </div>
-          </motion.section>
-        )}
-
         {selected.length >= 2 && (
           <motion.section
             initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            animate={{ opacity: 1, y: 0 }}
             className="mt-12"
           >
             <h2 className="mb-4 text-xl font-bold">Tabela porównawcza</h2>
@@ -160,7 +214,7 @@ export default function ComparePage() {
                   <Row label="Kategoria" values={selected.map((m) => m.category === 'open-source' ? 'Open Source' : 'API')} mono={false} />
                   <Row label="Parametry" values={selected.map((m) => m.parameters ?? '—')} />
                   <Row label="Kontekst" values={selected.map((m) => formatContext(m.contextWindow))} />
-                  <Row label="Szybkość" values={selected.map((m) => `${m.speed}/10`)} />
+                  <Row label="Szybkość" values={selected.map((m) => `${m.speed}/100`)} />
                   <Row label="Jakość" values={selected.map((m) => `${m.quality}/100`)} />
                   <Row label="Programowanie" values={selected.map((m) => `${m.coding}/100`)} />
                   <Row label="Matematyka" values={selected.map((m) => `${m.math}/100`)} />
@@ -184,6 +238,78 @@ export default function ComparePage() {
                   />
                 </tbody>
               </table>
+            </div>
+          </motion.section>
+        )}
+
+        {selected.length >= 2 && (
+          <motion.section
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mt-12"
+          >
+            <h2 className="mb-4 text-xl font-bold">Podsumowanie AI</h2>
+            <div className="rounded-2xl border border-border bg-card/30 p-4 backdrop-blur-sm sm:p-6">
+              {!summary && !summaryLoading && !summaryError && (
+                <div className="flex flex-col items-center gap-3 py-6 text-center">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-violet-500/10">
+                    <Bot className="h-6 w-6 text-violet-500" />
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Kliknij przycisk aby model AI podsumował porównanie wybranych modeli.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={fetchSummary}
+                    className="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-violet-700 active:bg-violet-800"
+                  >
+                    <Bot className="h-4 w-4" />
+                    Generuj podsumowanie
+                  </button>
+                </div>
+              )}
+
+              {summaryLoading && (
+                <div className="flex flex-col items-center gap-3 py-6 text-center">
+                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-violet-500 border-t-transparent" />
+                  <p className="text-sm text-muted-foreground">Model AI analizuje modele...</p>
+                </div>
+              )}
+
+              {summaryError && (
+                <div className="flex flex-col items-center gap-3 py-6 text-center">
+                  <p className="text-sm text-destructive">{summaryError}</p>
+                  <button
+                    type="button"
+                    onClick={fetchSummary}
+                    className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-2 text-sm font-semibold transition-colors hover:bg-muted"
+                  >
+                    Spróbuj ponownie
+                  </button>
+                </div>
+              )}
+
+              {summary && (
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-violet-500/10">
+                      <Bot className="h-4 w-4 text-violet-500" />
+                    </div>
+                    <div className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">
+                      {summary}
+                    </div>
+                  </div>
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={fetchSummary}
+                      className="text-xs text-muted-foreground transition-colors hover:text-foreground"
+                    >
+                      Odśwież podsumowanie
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </motion.section>
         )}
@@ -227,7 +353,7 @@ function SelectedCard({ model, onRemove, canRemove }: { model: LLMModel; onRemov
           <div className="mt-2 flex flex-wrap gap-1.5 text-[10px]">
             <span className="rounded bg-muted/50 px-1.5 py-0.5">⭐ {model.rating.toFixed(1)}</span>
             <span className="rounded bg-muted/50 px-1.5 py-0.5">Q: {model.quality}</span>
-            <span className="rounded bg-muted/50 px-1.5 py-0.5">S: {model.speed}/10</span>
+            <span className="rounded bg-muted/50 px-1.5 py-0.5">S: {model.speed}/100</span>
           </div>
         </div>
         {canRemove && (

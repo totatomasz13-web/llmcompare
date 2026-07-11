@@ -6,7 +6,7 @@ import { Code2, Coins, Sparkles, BarChart3 } from 'lucide-react';
 import { ModelCard } from '@/components/model-card';
 import { ModelTable } from '@/components/model-table';
 import { SearchBar } from '@/components/search-bar';
-import { BarCompare, PriceVsQuality } from '@/components/charts';
+import { BarCompare } from '@/components/charts';
 import { MODELS, type LLMModel, type ModelCategory } from '@/data/models';
 import { cn } from '@/lib/utils';
 
@@ -133,15 +133,6 @@ export function CategoryPage({ category, title, subtitle, accent, icon }: Catego
                 </p>
                 <BarCompare models={models} metric={sortMetric} height={Math.max(280, models.length * 35)} />
               </div>
-              {category === 'paid' && (
-                <div className="rounded-2xl border border-border bg-card/30 p-6 backdrop-blur-sm">
-                  <h2 className="mb-2 text-lg font-bold">Cena vs Jakość</h2>
-                  <p className="mb-4 text-sm text-muted-foreground">
-                    Idealne modele są wysoko i blisko lewej krawędzi. Rozmiar bąbelka = kontekst.
-                  </p>
-                  <PriceVsQuality models={models} />
-                </div>
-              )}
             </div>
           )}
         </div>
